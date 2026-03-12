@@ -1,0 +1,121 @@
+<% content_for :title, "My Dashboard - MyStandMap" %>
+
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-8">My Dashboard</h1>
+  
+  <div class="grid md:grid-cols-2 gap-8">
+    <!-- Favorites Section -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">❤️ Saved Stands</h2>
+        <span class="text-sm text-gray-500"><%= @favorites.count %> saved</span>
+      </div>
+      
+      <% if @favorites.any? %>
+        <div class="space-y-3">
+          <% @favorites.each do |favorite| %>
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center gap-3">
+                <div class="text-2xl">
+                  <% if favorite.stand.products_text&.include?('egg') %>🥚
+                  <% elsif favorite.stand.products_text&.include?('honey') %>🍯
+                  <% elsif favorite.stand.products_text&.include?('berry') %>🍓
+                  <% elsif favorite.stand.products_text&.include?('meat') %>🥩
+                  <% else %>🌽<% end %>
+                </div>
+                <div>
+                  <a href="<%= stand_path(favorite.stand) %>" class="font-medium text-gray-800 hover:text-green-600">
+                    <%= favorite.stand.name %>
+                  </a>
+                  <p class="text-sm text-gray-500"><%= favorite.stand.city %>, <%= favorite.stand.state %></p>
+                </div>
+              </div>
+              <button class="text-red-500 hover:text-red-700" onclick="removeFavorite(<%= favorite.stand.id %>)">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </button>
+            </div>
+          <% end %>
+        </div>
+        <% if @favorites.count >= 10 %>
+          <a href="/api/favorites" class="block mt-4 text-center text-green-600 hover:text-green-700 text-sm">View all favorites</a>
+        <% end %>
+      <% else %>
+        <p class="text-gray-500 text-center py-4">No saved stands yet</p>
+        <a href="/map" class="block text-center text-green-600 hover:text-green-700 text-sm">Browse the map to save favorites</a>
+      <% end %>
+    </div>
+    
+    <!-- Saved Searches Section -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">🔔 Saved Searches</h2>
+        <span class="text-sm text-gray-500"><%= @saved_searches.count %> saved</span>
+      </div>
+      
+      <% if @saved_searches.any? %>
+        <div class="space-y-3">
+          <% @saved_searches.each do |search| %>
+            <div class="p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="font-medium text-gray-800"><%= search.name %></p>
+                  <p class="text-sm text-gray-500">
+                    <%= search.criteria_with_defaults[:radius] %> miles
+                    <% if search.criteria_with_defaults[:filter].present? %>
+                      • <%= search.criteria_with_defaults[:filter] %>
+                    <% end %>
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs px-2 py-1 rounded-full <%= search.alert_frequency == 'never' ? 'bg-gray-200' : 'bg-green-100 text-green-700' %>">
+                    <%= search.alert_frequency == 'never' ? 'Alerts off' : search.alert_frequency %>
+                  </span>
+                  <button class="text-red-500 hover:text-red-700" onclick="deleteSearch(<%= search.id %>)">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <% if search.last_result_count > 0 %>
+                <p class="text-xs text-green-600 mt-2">Last check: <%= search.last_result_count %> stands found</p>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 text-center py-4">No saved searches yet</p>
+        <a href="/map" class="block text-center text-green-600 hover:text-green-700 text-sm">Search the map and save your criteria</a>
+      <% end %>
+    </div>
+  </div>
+  
+  <!-- Account Info -->
+  <div class="mt-8 bg-white rounded-xl shadow-sm p-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Account</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <p class="text-sm text-gray-500">Email</p>
+        <p class="font-medium"><%= current_user.email %></p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Account Type</p>
+        <p class="font-medium capitalize"><%= current_user.role %></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function removeFavorite(standId) {
+  fetch('/api/favorites/' + standId, { method: 'DELETE' })
+    .then(function() { location.reload(); });
+}
+
+function deleteSearch(searchId) {
+  fetch('/api/saved_searches/' + searchId, { method: 'DELETE' })
+    .then(function() { location.reload(); });
+}
+</script>

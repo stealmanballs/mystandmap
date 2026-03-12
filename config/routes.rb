@@ -9,6 +9,16 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     get "/stands/nearby", to: "stands#nearby"
+    
+    # Favorites
+    resources :favorites, only: [:index, :create, :destroy] do
+      collection do
+        get :check
+      end
+    end
+    
+    # Saved Searches
+    resources :saved_searches, only: [:index, :create, :destroy, :update]
   end
   
   # Claims
@@ -31,6 +41,11 @@ Rails.application.routes.draw do
   namespace :farmer do
     get "/dashboard", to: "dashboard#show", as: :dashboard
     resources :stands, only: [:new, :create, :edit, :update]
+  end
+  
+  # User dashboard routes
+  namespace :user do
+    get "/dashboard", to: "dashboard#show", as: :dashboard
   end
   
   # Admin routes

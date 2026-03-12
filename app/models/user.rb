@@ -13,6 +13,10 @@ class User < ApplicationRecord
     end
   end
   
+  # Favorites
+  has_many :favorites, dependent: :destroy
+  has_many :favorite_stands, through: :favorites, source: :stand
+  
   # Password reset
   def generate_password_reset_token
     update!(

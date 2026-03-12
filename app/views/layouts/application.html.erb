@@ -66,6 +66,8 @@
               <% end %>
               <% if current_user.farmer? %>
                 <a href="/farmer/dashboard" class="hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+              <% else %>
+                <a href="/user/dashboard" class="hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">My Stands</a>
               <% end %>
               <span class="text-sm"><%= current_user.name %></span>
               <a href="/signout" class="bg-green-800 hover:bg-green-900 px-4 py-2 rounded-md text-sm font-medium">Sign Out</a>
