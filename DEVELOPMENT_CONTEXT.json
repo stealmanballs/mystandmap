@@ -1,0 +1,111 @@
+{
+  "project": {
+    "name": "MyStandMap",
+    "description": "Local food discovery platform connecting Wisconsin growers with local consumers",
+    "tech_stack": {
+      "framework": "Rails 7.2.3",
+      "ruby": "3.3.x",
+      "database": "PostgreSQL",
+      "authentication": "Custom session-based (has_secure_password)",
+      "frontend": "Tailwind CSS (via CDN)",
+      "file_storage": "Active Storage",
+      "error_tracking": "Sentry (configured)",
+      "rate_limiting": "rack-attack"
+    }
+  },
+  "test_accounts": [
+    {"role": "admin", "email": "admin@mystandmap.com", "password": "password123"},
+    {"role": "farmer", "email": "farmer@example.com", "password": "password123"},
+    {"role": "user", "email": "user@example.com", "password": "password123"}
+  ],
+  "completed_fixes": {
+    "bug_fixes": [
+      "User model stands association - returns only approved claims",
+      "farmer? method - returns true only for farmer role",
+      "Removed redundant Stand.find in StandsController#show",
+      "Added ransackable_associations to Stand model"
+    ],
+    "security": [
+      "CSV import - content_type and extension validation",
+      "Rate limiting - rack-attack for signin/signup/import",
+      "IDOR protection - farmers can only edit approved stands",
+      "Boot-time env var validation"
+    ],
+    "performance": [
+      "Fixed N+1 queries in admin dashboard",
+      "Added index on products_text for search"
+    ],
+    "new_features": [
+      "Active Storage for stand photos (max 5, 5MB each)",
+      "Sentry error tracking (needs SENTRY_DSN)",
+      "Created .env.example with all variables"
+    ]
+  },
+  "not_implemented": {
+    "high_priority": [
+      {
+        "item": "SMTP Configuration",
+        "details": "No mailer configured - need SMTP server details",
+        "would_enable": ["welcome emails", "password reset", "claim notifications"]
+      },
+      {
+        "item": "Email Views",
+        "details": "No mailer views exist"
+      }
+    ],
+    "medium_priority": [
+      "Caching - not implemented",
+      "CSV import logging - needs improvement",
+      "CSV deduplication - basic",
+      "Geocoding - not implemented"
+    ],
+    "lower_priority": [
+      "PWA features - need testing",
+      "Advanced search filters",
+      "Analytics dashboard"
+    ]
+  },
+  "required_env_vars": [
+    "SECRET_KEY_BASE",
+    "DATABASE_URL (production)"
+  ],
+  "optional_env_vars": [
+    "SENTRY_DSN",
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_REGION",
+    "AWS_S3_BUCKET"
+  ],
+  "commands": {
+    "install_deps": "bundle install",
+    "run_migrations": "bin/rails db:migrate",
+    "start_server": "bin/rails server",
+    "start_production": "RAILS_ENV=production SECRET_KEY_BASE=xxx DATABASE_URL=xxx bin/rails server"
+  },
+  "prompt_suggestions": [
+    {
+      "task": "Configure SMTP",
+      "description": "Create mailer configuration and views for welcome email, password reset, claim notifications"
+    },
+    {
+      "task": "Add caching",
+      "description": "Implement fragment caching for stand listings, dashboard stats using Redis or Memcached"
+    },
+    {
+      "task": "Improve CSV import",
+      "description": "Add better error reporting, deduplication, batch logging, progress indicator"
+    },
+    {
+      "task": "Add geocoding",
+      "description": "Integrate geocoder gem for auto-fill lat/lng from address"
+    },
+    {
+      "task": "Enhance admin dashboard",
+      "description": "Add charts, export to CSV, bulk actions"
+    },
+    {
+      "task": "Security audit",
+      "description": "Review all authorization checks, input sanitization, SQL injection, XSS prevention"
+    }
+  ]
+}
