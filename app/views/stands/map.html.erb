@@ -1,0 +1,349 @@
+<% content_for :title, "Map - Find Local Food in Wisconsin" %>
+
+<%= content_for :head do %>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<% end %>
+
+<div class="h-[calc(100vh-64px)] flex flex-col lg:flex-row">
+  <!-- Sidebar -->
+  <div class="w-full lg:w-96 bg-white shadow-xl z-20 flex flex-col overflow-hidden">
+    <!-- Search & Filters -->
+    <div class="p-4 border-b bg-gray-50">
+      <h1 class="text-xl font-bold text-gray-800 mb-3">🗺️ Find Local Food</h1>
+      
+      <!-- Location Search -->
+      <div class="mb-3">
+        <input 
+          type="text" 
+          id="location-search"
+          placeholder="Enter city or ZIP..." 
+          class="w-full px-3 py-2 border rounded-lg text-sm"
+          value="<%= params[:city] || '' %>"
+        >
+      </div>
+      
+      <!-- Radius Slider -->
+      <div class="mb-3">
+        <label class="text-sm font-medium text-gray-700 mb-1 block">
+          Distance: <span id="radius-display" class="text-green-600 font-bold">25 miles</span>
+        </label>
+        <input 
+          type="range" 
+          id="radius-slider"
+          min="5" 
+          max="100" 
+          step="5" 
+          value="25"
+          class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+        >
+        <div class="flex justify-between text-xs text-gray-500 mt-1">
+          <span>5 mi</span>
+          <span>50 mi</span>
+          <span>100 mi</span>
+        </div>
+      </div>
+      
+      <!-- Quick Filters -->
+      <div class="flex flex-wrap gap-2 mb-3">
+        <button class="filter-btn active px-3 py-1 text-xs rounded-full border bg-green-100 border-green-300 text-green-700" data-filter="">All</button>
+        <button class="filter-btn px-3 py-1 text-xs rounded-full border border-gray-300 hover:bg-gray-100" data-filter="eggs">🥚 Eggs</button>
+        <button class="filter-btn px-3 py-1 text-xs rounded-full border border-gray-300 hover:bg-gray-100" data-filter="honey">🍯 Honey</button>
+        <button class="filter-btn px-3 py-1 text-xs rounded-full border border-gray-300 hover:bg-gray-100" data-filter="produce">🥬 Produce</button>
+        <button class="filter-btn px-3 py-1 text-xs rounded-full border border-gray-300 hover:bg-gray-100" data-filter="berries">🍓 Berries</button>
+        <button class="filter-btn px-3 py-1 text-xs rounded-full border border-gray-300 hover:bg-gray-100" data-filter="meat">🥩 Meat</button>
+        <button class="filter-btn px-3 py-1 text-xs rounded-full border border-gray-300 hover:bg-gray-100" data-filter="maple">🍁 Maple</button>
+      </div>
+      
+      <!-- Results Count -->
+      <div class="text-sm text-gray-600">
+        <span id="results-count">Loading...</span> stands found
+        <span id="location-display" class="ml-2 text-green-600"></span>
+      </div>
+    </div>
+    
+    <!-- Results List -->
+    <div id="stands-list" class="flex-1 overflow-y-auto">
+      <!-- Stands will be loaded here -->
+    </div>
+  </div>
+  
+  <!-- Map -->
+  <div id="map" class="flex-1 bg-gray-200"></div>
+</div>
+
+<!-- Stand Preview Modal -->
+<div id="stand-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+  <div class="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div id="stand-modal-content">
+      <!-- Content loaded via JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+// Product icon mapping
+const PRODUCT_ICONS = {
+  eggs: '🥚',
+  honey: '🍯',
+  produce: '🥬',
+  vegetables: '🥬',
+  berries: '🍓',
+  strawberry: '🍓',
+  blueberries: '🍓',
+  corn: '🌽',
+  sweet_corn: '🌽',
+  meat: '🥩',
+  beef: '🥩',
+  pork: '🥓',
+  chicken: '🍗',
+  maple: '🍁',
+  syrup: '🍁',
+  baked: '🥐',
+  bakery: '🥐',
+  flowers: '💐',
+  u_pick: '🍓',
+  default: '🌽'
+};
+
+function getProductIcon(productsText) {
+  if (!productsText) return PRODUCT_ICONS.default;
+  const text = productsText.toLowerCase();
+  
+  if (text.includes('egg')) return PRODUCT_ICONS.eggs;
+  if (text.includes('honey')) return PRODUCT_ICONS.honey;
+  if (text.includes('berry') || text.includes('strawberr') || text.includes('blueberr')) return PRODUCT_ICONS.berries;
+  if (text.includes('corn')) return PRODUCT_ICONS.corn;
+  if (text.includes('meat') || text.includes('beef') || text.includes('pork') || text.includes('chicken')) return PRODUCT_ICONS.meat;
+  if (text.includes('maple') || text.includes('syrup')) return PRODUCT_ICONS.maple;
+  if (text.includes('baked') || text.includes('bread') || text.includes('pastr')) return PRODUCT_ICONS.baked;
+  if (text.includes('flower')) return PRODUCT_ICONS.flowers;
+  if (text.includes('vegetable') || text.includes('produce') || text.includes('fruit')) return PRODUCT_ICONS.produce;
+  
+  return PRODUCT_ICONS.default;
+}
+
+// State
+let map;
+let markers = [];
+let currentRadius = 25;
+let currentFilter = '';
+let centerLat = <%= @center_lat || 43.7844 %>;
+let centerLng = <%= @center_lng || -88.7879 %>;
+let stands = [];
+
+// Custom marker icon
+function createIcon(emoji) {
+  return L.divIcon({
+    html: '<div class="text-2xl drop-shadow-md">' + emoji + '</div>',
+    className: 'custom-marker',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
+}
+
+// Initialize map
+document.addEventListener('DOMContentLoaded', function() {
+  initMap();
+  loadStands();
+  
+  // Radius slider
+  const slider = document.getElementById('radius-slider');
+  const display = document.getElementById('radius-display');
+  slider.addEventListener('input', function() {
+    currentRadius = this.value;
+    display.textContent = currentRadius + ' miles';
+    loadStands();
+  });
+  
+  // Filter buttons
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(function(b) {
+        b.classList.remove('active', 'bg-green-100', 'border-green-300', 'text-green-700');
+        b.classList.add('border-gray-300');
+      });
+      this.classList.add('active', 'bg-green-100', 'border-green-300', 'text-green-700');
+      this.classList.remove('border-gray-300');
+      currentFilter = this.dataset.filter;
+      loadStands();
+    });
+  });
+  
+  // Location search
+  const locationInput = document.getElementById('location-search');
+  let searchTimeout;
+  locationInput.addEventListener('change', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(function() {
+      geocodeLocation(locationInput.value);
+    }, 500);
+  });
+});
+
+function initMap() {
+  map = L.map('map').setView([centerLat, centerLng], 8);
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  
+  // Try to get user location
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        centerLat = position.coords.latitude;
+        centerLng = position.coords.longitude;
+        map.setView([centerLat, centerLng], 10);
+        document.getElementById('location-display').textContent = '📍 Near you';
+        loadStands();
+      },
+      function() {
+        console.log('Geolocation not available');
+      }
+    );
+  }
+}
+
+function geocodeLocation(query) {
+  if (!query) return;
+  
+  fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query + ', Wisconsin, USA'))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data && data.length > 0) {
+        centerLat = parseFloat(data[0].lat);
+        centerLng = parseFloat(data[0].lon);
+        map.setView([centerLat, centerLng], 10);
+        document.getElementById('location-display').textContent = '📍 ' + data[0].display_name.split(',')[0];
+        loadStands();
+      }
+    });
+}
+
+function loadStands() {
+  var params = new URLSearchParams({
+    radius: currentRadius,
+    lat: centerLat,
+    lng: centerLng,
+    filter: currentFilter
+  });
+  
+  fetch('/api/stands/nearby.json?' + params.toString())
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      stands = data;
+      updateMarkers();
+      updateList();
+    });
+}
+
+function updateMarkers() {
+  // Clear existing markers
+  markers.forEach(function(m) { map.removeLayer(m); });
+  markers = [];
+  
+  // Add new markers
+  stands.forEach(function(stand) {
+    if (stand.latitude && stand.longitude) {
+      var icon = createIcon(getProductIcon(stand.products_text));
+      var marker = L.marker([stand.latitude, stand.longitude], { icon: icon })
+        .addTo(map)
+        .on('click', function() { showStandPreview(stand); });
+      markers.push(marker);
+    }
+  });
+  
+  // Update count
+  document.getElementById('results-count').textContent = stands.length;
+}
+
+function updateList() {
+  var list = document.getElementById('stands-list');
+  var html = '';
+  
+  stands.forEach(function(stand) {
+    var distanceHtml = stand.distance ? '<p class="text-xs text-green-600">' + stand.distance.toFixed(1) + ' miles away</p>' : '';
+    var productsHtml = stand.products_text ? '<p class="text-xs text-gray-500 mt-1 line-clamp-2">' + stand.products_text + '</p>' : '';
+    
+    html += '<div class="p-4 border-b hover:bg-gray-50 cursor-pointer" onclick="showStandPreview(' + stand.id + ')">' +
+      '<div class="flex items-start gap-3">' +
+        '<div class="text-2xl">' + getProductIcon(stand.products_text) + '</div>' +
+        '<div class="flex-1">' +
+          '<h3 class="font-semibold text-gray-800">' + stand.name + '</h3>' +
+          '<p class="text-sm text-gray-600">' + stand.city + ', ' + stand.state + '</p>' +
+          distanceHtml +
+          productsHtml +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  
+  if (stands.length === 0) {
+    html = '<div class="p-4 text-center text-gray-500">No stands found. Try a larger radius.</div>';
+  }
+  
+  list.innerHTML = html;
+}
+
+function showStandPreview(standId) {
+  // Find stand by ID
+  var stand = stands.find(function(s) { return s.id === standId; });
+  if (!stand) return;
+  
+  var modal = document.getElementById('stand-modal');
+  var content = document.getElementById('stand-modal-content');
+  
+  var phoneHtml = stand.phone ? '<a href="tel:' + stand.phone + '" class="bg-green-100 text-green-700 px-3 py-2 rounded-lg text-sm flex items-center gap-1">📞 ' + stand.phone + '</a>' : '';
+  var emailHtml = stand.email ? '<a href="mailto:' + stand.email + '" class="bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm flex items-center gap-1">✉️ Email</a>' : '';
+  var addressHtml = stand.address_1 ? '<a href="https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(stand.full_address || stand.address_1 + ', ' + stand.city + ', ' + stand.state) + '" target="_blank" class="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm flex items-center gap-1">🗺️ Get Directions</a>' : '';
+  var productsHtml = stand.products_text ? '<div class="mb-3"><h3 class="text-sm font-semibold text-gray-700 mb-1">Products</h3><p class="text-sm text-gray-600">' + stand.products_text + '</p></div>' : '';
+  var hoursHtml = stand.hours_text ? '<div class="mb-3"><h3 class="text-sm font-semibold text-gray-700 mb-1">Hours</h3><p class="text-sm text-gray-600">' + stand.hours_text + '</p></div>' : '';
+  var verifiedHtml = stand.verified ? '<span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">✓ Verified</span>' : '';
+  
+  content.innerHTML = '<div class="relative">' +
+    '<div class="h-32 bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-6xl">' +
+      getProductIcon(stand.products_text) +
+    '</div>' +
+    '<button onclick="closeModal()" class="absolute top-2 right-2 bg-white rounded-full p-1 shadow">' +
+      '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>' +
+    '</button>' +
+  '</div>' +
+  '<div class="p-4">' +
+    '<div class="flex items-center gap-2 mb-2">' +
+      '<h2 class="text-xl font-bold text-gray-800">' + stand.name + '</h2>' +
+      verifiedHtml +
+    '</div>' +
+    '<p class="text-gray-600 mb-3">📍 ' + stand.city + ', ' + stand.state + ' ' + (stand.zip || '') + '</p>' +
+    productsHtml +
+    hoursHtml +
+    '<div class="flex flex-wrap gap-2 mb-4">' +
+      phoneHtml +
+      emailHtml +
+      addressHtml +
+    '</div>' +
+    '<a href="/stands/' + stand.id + '" class="block w-full bg-green-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-green-700">View Full Profile →</a>' +
+  '</div>';
+  
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeModal() {
+  var modal = document.getElementById('stand-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+// Close modal on outside click
+document.getElementById('stand-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+
+<style>
+.custom-marker {
+  background: transparent;
+  border: none;
+}
+</style>

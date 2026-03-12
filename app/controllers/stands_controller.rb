@@ -32,6 +32,12 @@ class StandsController < ApplicationController
     end
   end
   
+  def map
+    # Default center: Wisconsin
+    @center_lat = params[:lat].presence&.to_f || 43.7844
+    @center_lng = params[:lng].presence&.to_f || -88.7879
+  end
+  
   def show
     # Cache individual stand with cache key based on updated_at
     cache_key = "stand_#{params[:id]}_#{@stand.updated_at.to_i}"

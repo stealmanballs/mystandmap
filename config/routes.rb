@@ -3,8 +3,13 @@ Rails.application.routes.draw do
   
   # Public routes
   root "stands#index"
-  get "/map", to: "stands#index", as: :map
+  get "/map", to: "stands#map", as: :map
   resources :stands, only: [:index, :show]
+  
+  # API routes
+  namespace :api do
+    get "/stands/nearby", to: "stands#nearby"
+  end
   
   # Claims
   resources :claims, only: [:new, :create]
