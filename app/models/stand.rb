@@ -22,4 +22,8 @@ class Stand < ApplicationRecord
   def self.ransackable_attributes(auth_object = nil)
     %w[name city state stand_type products_text]
   end
+  
+  def self.ransackable_associations(auth_object = nil)
+    []
+  end
 end

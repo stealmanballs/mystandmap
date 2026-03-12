@@ -23,7 +23,7 @@ class StandsController < ApplicationController
   end
   
   def show
-    @stand = Stand.find(params[:id])
+    # @stand is already loaded by set_stand before_action
   end
   
   private

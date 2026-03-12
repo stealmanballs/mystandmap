@@ -7,16 +7,20 @@ class User < ApplicationRecord
   validates :password, length: { minimum: 6 }, if: :password_digest_changed?
   
   has_many :claims, dependent: :destroy
-  has_many :stands, through: :claims
+  has_many :stands, through: :claims, source: :stand do
+    def approved
+      where("claims.status = 'approved'")
+    end
+  end
   
   def admin?
     role == 'admin'
   end
   
   def farmer?
-    role == 'farmer' || role == 'admin'
+    role == 'farmer'
   end
-  
+
   def valid_password?(password)
     authenticate(password)
   end

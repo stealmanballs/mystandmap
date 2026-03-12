@@ -35,6 +35,18 @@ class Admin::StandsController < ApplicationController
       return
     end
     
+    # Validate file type
+    unless params[:file].content_type.in?(['text/csv', 'application/csv', 'text/comma-separated-values'])
+      redirect_to import_admin_stands_path, alert: "Please upload a CSV file."
+      return
+    end
+    
+    # Validate file extension as additional check
+    unless params[:file].original_filename.end_with?('.csv')
+      redirect_to import_admin_stands_path, alert: "Please upload a file with .csv extension."
+      return
+    end
+    
     imported_count = 0
     failed_count = 0
     errors = []
