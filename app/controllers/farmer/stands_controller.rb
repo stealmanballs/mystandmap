@@ -38,14 +38,16 @@ class Farmer::StandsController < ApplicationController
   private
   
   def load_farmer_stand
-    @stand = current_user.stands.find(params[:id])
+    # Only find stands where user has an approved claim
+    @stand = current_user.stands.approved.find(params[:id])
   rescue ActiveRecord::RecordNotFound
-    redirect_to farmer_dashboard_path, alert: "Stand not found."
+    redirect_to farmer_dashboard_path, alert: "Stand not found or access denied."
   end
   
   def stand_params
     params.require(:stand).permit(:name, :description, :stand_type, :address_1, :address_2, 
                                   :city, :state, :zip, :phone, :email, :website_url, 
-                                  :facebook_url, :hours_text, :products_text, :open_now_override, :verified)
+                                  :facebook_url, :hours_text, :products_text, :open_now_override, :verified,
+                                  photos: [])
   end
 end

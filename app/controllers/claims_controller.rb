@@ -4,7 +4,7 @@ class ClaimsController < ApplicationController
   before_action :authenticate_user!, except: [:new]
   
   def new
-    @stand = Stand.friendly.find(params[:stand_id])
+    @stand = Stand.find(params[:stand_id])
     if @stand.claimed?
       redirect_to @stand, alert: "This stand has already been claimed."
     end
@@ -12,7 +12,7 @@ class ClaimsController < ApplicationController
   end
   
   def create
-    @stand = Stand.friendly.find(params[:stand_id])
+    @stand = Stand.find(params[:stand_id])
     
     if @stand.claimed?
       redirect_to @stand, alert: "This stand has already been claimed."

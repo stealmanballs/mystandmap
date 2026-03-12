@@ -98,6 +98,7 @@ class Admin::StandsController < ApplicationController
     params.require(:stand).permit(:name, :description, :stand_type, :address_1, :address_2,
                                   :city, :state, :zip, :latitude, :longitude, :phone, 
                                   :email, :website_url, :facebook_url, :google_maps_url,
-                                  :hours_text, :products_text, :open_now_override, :verified, :claimed)
+                                  :hours_text, :products_text, :open_now_override, :verified, :claimed,
+                                  photos: [])
   end
 end
