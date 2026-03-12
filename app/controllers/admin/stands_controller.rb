@@ -27,6 +27,7 @@ class Admin::StandsController < ApplicationController
   end
   
   def import
+    @recent_imports = ImportBatch.order(created_at: :desc).limit(10)
   end
   
   def import_csv
@@ -47,16 +48,72 @@ class Admin::StandsController < ApplicationController
       return
     end
     
+    # Validate CSV headers
+    begin
+      headers = CSV.read(params[:file].path, encoding: 'UTF-8').first
+      unless headers.present?
+        redirect_to import_admin_stands_path, alert: "CSV file appears to be empty."
+        return
+      end
+    rescue => e
+      redirect_to import_admin_stands_path, alert: "Could not parse CSV file: #{e.message}"
+      return
+    end
+    
+    # Create import batch record
+    import_batch = ImportBatch.create!(
+      file_name: params[:file].original_filename,
+      status: 'processing',
+      user: current_user,
+      started_at: Time.current
+    )
+    
     imported_count = 0
     failed_count = 0
-    errors = []
+    duplicate_count = 0
+    error_summary = []
     
     CSV.foreach(params[:file].path, headers: true, encoding: 'UTF-8') do |row|
+      row_number = $.
+      
       begin
+        # Skip empty rows
+        next if row.to_h.values.all?(&:blank?)
+        
+        name = row['stand_name'] || row['name']
+        address = row['address']
+        city = row['city']
+        
+        # Check for duplicates (by name + city)
+        existing = Stand.where('LOWER(name) = ? AND LOWER(city) = ?', 
+                              name.to_s.downcase, city.to_s.downcase).exists?
+        if existing
+          duplicate_count += 1
+          import_batch.import_errors.create!(
+            row_number: row_number,
+            row_data: row.to_h.to_json,
+            error_message: "Duplicate stand: #{name} in #{city}",
+            error_type: 'duplicate'
+          )
+          next
+        end
+        
+        # Validate required fields
+        unless name.present? && city.present?
+          failed_count += 1
+          import_batch.import_errors.create!(
+            row_number: row_number,
+            row_data: row.to_h.to_json,
+            error_message: "Missing required fields: name and city",
+            error_type: 'validation'
+          )
+          next
+        end
+        
         stand_data = {
-          name: row['stand_name'] || row['name'],
-          address_1: row['address'],
-          city: row['city'],
+          name: name,
+          address_1: address,
+          city: city,
           state: row['state'] || 'WI',
           zip: row['zip'],
           latitude: row['latitude'],
@@ -77,19 +134,37 @@ class Admin::StandsController < ApplicationController
           imported_count += 1
         else
           failed_count += 1
-          errors << "Row #{$.}: #{stand.errors.full_messages.join(', ')}"
+          error_msg = stand.errors.full_messages.join(', ')
+          import_batch.import_errors.create!(
+            row_number: row_number,
+            row_data: row.to_h.to_json,
+            error_message: error_msg,
+            error_type: 'validation'
+          )
         end
       rescue => e
         failed_count += 1
-        errors << "Row #{$.}: #{e.message}"
+        import_batch.import_errors.create!(
+          row_number: row_number,
+          row_data: row.to_h.to_json,
+          error_message: e.message,
+          error_type: 'error'
+        )
       end
     end
     
-    if imported_count > 0
-      redirect_to admin_dashboard_path, notice: "Imported #{imported_count} stands. #{failed_count} failed."
-    else
-      redirect_to import_admin_stands_path, alert: "Import failed. #{failed_count} errors."
-    end
+    # Update import batch
+    import_batch.update!(
+      status: failed_count == 0 ? 'completed' : 'completed_with_errors',
+      imported_count: imported_count,
+      failed_count: failed_count,
+      duplicate_count: duplicate_count,
+      completed_at: Time.current,
+      error_summary: error_summary.join("\n") if error_summary.any?
+    )
+    
+    redirect_to admin_dashboard_path, 
+      notice: "Import complete: #{imported_count} imported, #{duplicate_count} duplicates, #{failed_count} failed."
   end
   
   private

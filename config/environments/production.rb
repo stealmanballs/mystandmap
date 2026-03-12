@@ -44,6 +44,9 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
 
+  # Serve static files in production
+  config.public_file_server.enabled = ENV.fetch('RAILS_SERVE_STATIC_FILES', false).present?
+
   # Mount Action Cable outside main process or domain.
   # config.action_cable.mount_path = nil
   # config.action_cable.url = "wss://example.com/cable"
@@ -82,6 +85,29 @@ Rails.application.configure do
   # Disable caching for Action Mailer templates even if Action Controller
   # caching is enabled.
   config.action_mailer.perform_caching = false
+
+  # Configure SMTP if available
+  if ENV['SMTP_ADDRESS'].present?
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      address: ENV['SMTP_ADDRESS'],
+      port: ENV.fetch('SMTP_PORT', 587).to_i,
+      domain: ENV['SMTP_DOMAIN'],
+      user_name: ENV.fetch('SMTP_USERNAME', '').presence,
+      password: ENV.fetch('SMTP_PASSWORD', '').presence,
+      authentication: ENV.fetch('SMTP_AUTHENTICATION', 'plain').to_sym,
+      enable_starttls_auto: ENV.fetch('SMTP_ENABLE_STARTTLS_AUTO', 'true') == 'true'
+    }
+    config.action_mailer.default_options = {
+      from: ENV.fetch('DEFAULT_FROM_EMAIL', 'noreply@mystandmap.com')
+    }
+  end
+
+  # Default URL options
+  config.action_mailer.default_url_options = {
+    host: ENV.fetch('APP_HOST', 'localhost'),
+    protocol: ENV.fetch('APP_PROTOCOL', 'https')
+  }
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.

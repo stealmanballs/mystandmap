@@ -11,12 +11,16 @@ class Admin::ClaimsController < ApplicationController
     @claim = Claim.find(params[:id])
     @claim.approved!
     @claim.stand.update(claimed: true)
+    # Send approval email
+    ClaimMailer.claim_approved(@claim).deliver_now rescue nil
     redirect_to admin_claims_path, notice: "Claim approved!"
   end
   
   def reject
     @claim = Claim.find(params[:id])
     @claim.rejected!
+    # Send rejection email
+    ClaimMailer.claim_rejected(@claim).deliver_now rescue nil
     redirect_to admin_claims_path, notice: "Claim rejected."
   end
 end

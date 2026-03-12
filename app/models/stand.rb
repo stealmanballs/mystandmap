@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class Stand < ApplicationRecord
+  # Geocoding
+  geocoded_by :full_address
+  after_validation :geocode, if: -> { address_changed? && latitude.nil? && longitude.nil? }
+  
   has_many :claims, dependent: :destroy
   has_many_attached :photos
   
@@ -32,6 +36,22 @@ class Stand < ApplicationRecord
   
   def full_address
     [address_1, address_2, city, state, zip].compact.reject(&:empty?).join(', ')
+  end
+  
+  # Check if address fields changed for geocoding
+  def address_changed?
+    saved_change_to_address_1? || saved_change_to_address_2? || 
+    saved_change_to_city? || saved_change_to_state? || saved_change_to_zip?
+  end
+  
+  # Clear cache when stand is updated
+  after_save :clear_cache
+  after_destroy :clear_cache
+  
+  def clear_cache
+    Rails.cache.delete("stand_#{id}_#{updated_at.to_i}")
+    # Clear the stands list cache (all variations)
+    Rails.cache.delete_matched("stands_list_*")
   end
   
   def claimed?

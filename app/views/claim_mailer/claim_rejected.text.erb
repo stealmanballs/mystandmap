@@ -1,0 +1,16 @@
+Claim Update
+
+Hi <%= @user.name || @user.email %>,
+
+Unfortunately, your claim for <%= @stand.name %> was not approved at this time.
+
+<% if @claim.notes.present? %>
+Reason: <%= @claim.notes %>
+<% end %>
+
+If you believe this was a mistake or would like more information, please contact us.
+
+- The MyStandMap Team
+
+---
+© <%= Date.current.year %> MyStandMap - Connecting Wisconsin with Local Food

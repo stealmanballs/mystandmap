@@ -9,6 +9,8 @@ class RegistrationsController < ApplicationController
     @user = User.new(user_params)
     if @user.save
       session[:user_id] = @user.id
+      # Send welcome email (deliver_later in production for performance)
+      UserMailer.welcome_email(@user).deliver_now rescue nil
       redirect_to root_path, notice: "Account created successfully!"
     else
       flash.now[:alert] = @user.errors.full_messages.join(", ")

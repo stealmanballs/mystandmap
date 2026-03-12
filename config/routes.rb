@@ -16,6 +16,12 @@ Rails.application.routes.draw do
   get "/signup", to: "registrations#new", as: :new_user_registration
   post "/signup", to: "registrations#create"
   
+  # Password reset
+  get "/password/reset", to: "password_resets#new", as: :new_password_reset
+  post "/password/reset", to: "password_resets#create"
+  get "/password/reset/:id/edit", to: "password_resets#edit", as: :edit_password_reset
+  patch "/password/reset/:id", to: "password_resets#update"
+  
   # Farmer routes
   namespace :farmer do
     get "/dashboard", to: "dashboard#show", as: :dashboard

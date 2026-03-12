@@ -1,0 +1,18 @@
+New Stand Claim
+
+A new stand claim requires your review.
+
+Stand: <%= @stand.name %>
+City: <%= @stand.city %>, <%= @stand.state %>
+Claimed By: <%= @user.email %>
+<% if @user.name.present? %>
+Name: <%= @user.name %>
+<% end %>
+<% if @claim.notes.present? %>
+Notes: <%= @claim.notes %>
+<% end %>
+
+Review Claims: <%= admin_claims_url %>
+
+---
+© <%= Date.current.year %> MyStandMap

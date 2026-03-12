@@ -1,0 +1,21 @@
+Claim Approved!
+
+Hi <%= @user.name || @user.email %>,
+
+Great news! Your claim for <%= @stand.name %> has been approved!
+
+You can now manage this stand on MyStandMap:
+<%= farmer_dashboard_url %>
+
+You can update:
+- Stand hours and availability
+- Products available
+- Contact information
+- Add photos
+
+Thank you for joining MyStandMap in connecting Wisconsin with local food!
+
+- The MyStandMap Team
+
+---
+© <%= Date.current.year %> MyStandMap - Connecting Wisconsin with Local Food

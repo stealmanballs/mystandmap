@@ -13,6 +13,23 @@ class User < ApplicationRecord
     end
   end
   
+  # Password reset
+  def generate_password_reset_token
+    update!(
+      reset_password_token: SecureRandom.urlsafe_base64(48),
+      reset_password_sent_at: Time.current
+    )
+    reset_password_token
+  end
+  
+  def password_reset_valid?
+    reset_password_sent_at && reset_password_sent_at > 2.hours.ago
+  end
+  
+  def clear_password_reset_token!
+    update!(reset_password_token: nil, reset_password_sent_at: nil)
+  end
+  
   def admin?
     role == 'admin'
   end

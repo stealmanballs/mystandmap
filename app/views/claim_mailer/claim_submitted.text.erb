@@ -1,0 +1,16 @@
+Claim Submitted
+
+Hi <%= @user.name || @user.email %>,
+
+Your claim for <%= @stand.name %> has been submitted and is awaiting review.
+
+Stand Details:
+<%= @stand.address_1 %>
+<%= @stand.city %>, <%= @stand.state %> <%= @stand.zip %>
+
+We'll notify you once our team reviews your claim. This usually takes 1-2 business days.
+
+- The MyStandMap Team
+
+---
+© <%= Date.current.year %> MyStandMap - Connecting Wisconsin with Local Food
