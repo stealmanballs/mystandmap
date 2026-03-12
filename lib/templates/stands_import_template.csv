@@ -1,0 +1,4 @@
+stand_name,address,city,state,zip,latitude,longitude,stand_type,products_available,open_hours,contact_phone,contact_email,website_or_facebook
+"Example Farm Stand","123 Main St","Madison","WI","53703","43.0731","-89.4012","farm_stand","Eggs, vegetables, honey","Mon-Sat: 8am-6pm","608-555-0100","farm@example.com","http://example.com"
+"Example U-Pick","456 Berry Rd","Milwaukee","WI","53202","43.0389","-87.9065","u_pick","Strawberries, blueberries","Daily: 9am-5pm (seasonal)","414-555-0200","","http://facebook.com/u-pick"
+"Example Farmers Market","789 Market St","Green Bay","WI","54301","44.5133","-88.0133","farmers_market","Local produce, crafts","Saturday: 8am-1pm","920-555-0300","market@example.com",""

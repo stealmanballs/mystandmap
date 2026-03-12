@@ -1,0 +1,30 @@
+<% content_for :title, "Claim #{@stand.name} - MyStandMap" %>
+
+<div class="max-w-2xl mx-auto px-4 py-8">
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">Claim: <%= @stand.name %></h1>
+    <p class="text-gray-600 mb-6">
+      You're claiming this stand on MyStandMap. Once approved, you'll be able to update hours, products, and other information.
+    </p>
+    
+    <% if flash[:alert] %>
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <%= flash[:alert] %>
+      </div>
+    <% end %>
+    
+    <%= form_with url: claims_path, local: true do |f| %>
+      <input type="hidden" name="stand_id" value="<%= @stand.id %>">
+      
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+        <textarea name="claim[notes]" rows="4" placeholder="Tell us a bit about yourself and your farm..."
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"></textarea>
+      </div>
+      
+      <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold">
+        Submit Claim Request
+      </button>
+    <% end %>
+  </div>
+</div>

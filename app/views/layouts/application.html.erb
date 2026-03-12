@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html class="h-full">
+  <head>
+    <title><%= content_for(:title) || "MyStandMap - Find Local Food in Wisconsin" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="description" content="Find local farm stands, u-pick farms, and farmers markets in Wisconsin">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+    
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              green: {
+                50: '#f0fdf4',
+                100: '#dcfce7',
+                200: '#bbf7d0',
+                300: '#86efac',
+                400: '#4ade80',
+                500: '#22c55e',
+                600: '#16a34a',
+                700: '#15803d',
+                800: '#166534',
+                900: '#14532d',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    </style>
+  </head>
+
+  <body class="h-full bg-gray-50">
+    <!-- Header -->
+    <header class="bg-green-700 text-white shadow-lg">
+      <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <a href="/" class="flex items-center space-x-2">
+              <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+              </svg>
+              <span class="font-bold text-xl">MyStandMap</span>
+            </a>
+            <div class="hidden md:flex ml-10 space-x-4">
+              <a href="/" class="hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Explore</a>
+              <a href="/map" class="hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Map</a>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <% if user_signed_in? %>
+              <% if current_user.admin? %>
+                <a href="/admin/dashboard" class="hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Admin</a>
+              <% end %>
+              <% if current_user.farmer? %>
+                <a href="/farmer/dashboard" class="hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+              <% end %>
+              <span class="text-sm"><%= current_user.name %></span>
+              <a href="/signout" class="bg-green-800 hover:bg-green-900 px-4 py-2 rounded-md text-sm font-medium">Sign Out</a>
+            <% else %>
+              <a href="/signin" class="hover:bg-green-600 px-3 py-2 rounded-md text-sm font-medium">Sign In</a>
+              <a href="/signup?role=farmer" class="bg-white text-green-700 hover:bg-gray-100 px-4 py-2 rounded-md text-sm font-medium">List Your Stand</a>
+            <% end %>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="min-h-screen">
+      <%= yield %>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <div class="mb-4 md:mb-0">
+            <h3 class="text-lg font-bold">MyStandMap</h3>
+            <p class="text-gray-400 text-sm">Connecting Wisconsin families with local farmers since 2024</p>
+          </div>
+          <div class="flex space-x-6 text-sm text-gray-400">
+            <a href="/" class="hover:text-white">Home</a>
+            <a href="/map" class="hover:text-white">Map</a>
+            <a href="/signup?role=farmer" class="hover:text-white">For Farmers</a>
+          </div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-gray-700 text-center text-sm text-gray-500">
+          © 2024 MyStandMap. All rights reserved. Wisconsin First.
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

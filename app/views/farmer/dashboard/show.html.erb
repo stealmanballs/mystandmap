@@ -1,0 +1,74 @@
+<% content_for :title, "Farmer Dashboard - MyStandMap" %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-8">Farmer Dashboard</h1>
+  
+  <div class="grid md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="text-3xl font-bold text-green-600"><%= @stands.count %></div>
+      <div class="text-gray-600">Your Stands</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="text-3xl font-bold text-blue-600">
+        <%= @stands.sum { |s| s.claims.count } %>
+      </div>
+      <div class="text-gray-600">Total Claims</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="text-3xl font-bold text-purple-600">
+        <%= @stands.where(verified: true).count %>
+      </div>
+      <div class="text-gray-600">Verified Stands</div>
+    </div>
+  </div>
+  
+  <!-- Your Stands -->
+  <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold text-gray-800">Your Stands</h2>
+      <a href="/farmer/stands/new" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+        + Add New Stand
+      </a>
+    </div>
+    
+    <% if @stands.any? %>
+      <div class="space-y-4">
+        <% @stands.each do |stand| %>
+          <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
+            <div>
+              <h3 class="font-semibold text-gray-800"><%= stand.name %></h3>
+              <p class="text-gray-600 text-sm"><%= stand.city %>, <%= stand.state %></p>
+            </div>
+            <div class="flex items-center gap-2">
+              <% if stand.verified? %>
+                <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Verified</span>
+              <% end %>
+              <a href="/farmer/stands/<%= stand.id %>/edit" class="text-green-600 hover:text-green-700">Edit</a>
+              <a href="/stands/<%= stand.id %>" class="text-gray-600 hover:text-gray-700">View</a>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-8">
+        You don't have any stands yet.
+        <a href="/farmer/stands/new" class="text-green-600 hover:underline">Add your first stand</a>
+      </p>
+    <% end %>
+  </div>
+  
+  <!-- Quick Actions -->
+  <div class="bg-white rounded-xl shadow-sm p-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
+    <div class="grid sm:grid-cols-2 gap-4">
+      <a href="/farmer/stands/new" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50">
+        <span class="text-2xl">➕</span>
+        <span class="font-medium text-gray-700">Add New Stand</span>
+      </a>
+      <a href="/" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50">
+        <span class="text-2xl">👁️</span>
+        <span class="font-medium text-gray-700">View Your Listing</span>
+      </a>
+    </div>
+  </div>
+</div>

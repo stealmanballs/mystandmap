@@ -1,0 +1,95 @@
+<% content_for :title, "Admin Dashboard - MyStandMap" %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
+  
+  <!-- Stats -->
+  <div class="grid md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="text-3xl font-bold text-green-600"><%= @total_stands %></div>
+      <div class="text-gray-600">Total Stands</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="text-3xl font-bold text-blue-600"><%= @claimed_stands %></div>
+      <div class="text-gray-600">Claimed Stands</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="text-3xl font-bold text-yellow-600"><%= @pending_claims %></div>
+      <div class="text-gray-600">Pending Claims</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="text-3xl font-bold text-purple-600"><%= User.where(role: 'farmer').count %></div>
+      <div class="text-gray-600">Farmers</div>
+    </div>
+  </div>
+  
+  <div class="grid lg:grid-cols-2 gap-8">
+    <!-- Recent Stands -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">Recent Stands</h2>
+        <a href="/admin/stands" class="text-green-600 hover:underline">View all</a>
+      </div>
+      <div class="space-y-3">
+        <% @recent_stands.each do |stand| %>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <div>
+              <p class="font-medium text-gray-800"><%= stand.name %></p>
+              <p class="text-sm text-gray-500"><%= stand.city %>, <%= stand.state %></p>
+            </div>
+            <% if stand.claimed? %>
+              <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">Claimed</span>
+            <% else %>
+              <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded-full">Unclaimed</span>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- Recent Claims -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">Recent Claims</h2>
+        <a href="/admin/claims" class="text-green-600 hover:underline">View all</a>
+      </div>
+      <div class="space-y-3">
+        <% @recent_claims.each do |claim| %>
+          <div class="flex justify-between items-center py-2 border-b border-gray-100">
+            <div>
+              <p class="font-medium text-gray-800"><%= claim.user.name %></p>
+              <p class="text-sm text-gray-500"><%= claim.stand.name %></p>
+            </div>
+            <span class="text-xs px-2 py-1 rounded-full 
+              <%= case claim.status
+                  when 'approved' then 'bg-green-100 text-green-700'
+                  when 'rejected' then 'bg-red-100 text-red-700'
+                  else 'bg-yellow-100 text-yellow-700'
+                  end %>">
+              <%= claim.status %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Admin Actions -->
+  <div class="mt-8 bg-white rounded-xl shadow-sm p-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Admin Actions</h2>
+    <div class="grid sm:grid-cols-3 gap-4">
+      <a href="/admin/stands/import" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50">
+        <span class="text-2xl">📥</span>
+        <span class="font-medium text-gray-700">Import CSV</span>
+      </a>
+      <a href="/admin/claims" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50">
+        <span class="text-2xl">✓</span>
+        <span class="font-medium text-gray-700">Review Claims</span>
+      </a>
+      <a href="/admin/stands" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50">
+        <span class="text-2xl">📋</span>
+        <span class="font-medium text-gray-700">Manage Stands</span>
+      </a>
+    </div>
+  </div>
+</div>

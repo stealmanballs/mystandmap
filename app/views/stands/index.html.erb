@@ -1,0 +1,155 @@
+<% content_for :title, "Find Local Food in Wisconsin - Farm Stands, U-Pick & More" %>
+
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-b from-green-700 to-green-800 text-white py-20 lg:py-32">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+      Fresh Local Food,<br class="hidden sm:block"> Right in Your Neighborhood
+    </h1>
+    <p class="text-xl md:text-2xl text-green-100 mb-8 max-w-3xl mx-auto">
+      Discover farm stands, u-pick farms, and farmers markets across Wisconsin. 
+      Connect directly with local growers and enjoy the freshest produce.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="/map" class="bg-white text-green-700 hover:bg-green-50 px-8 py-4 rounded-lg text-lg font-semibold shadow-lg transition">
+        🗺️ Explore the Map
+      </a>
+      <a href="/?view=list" class="bg-green-600 hover:bg-green-500 border-2 border-green-400 px-8 py-4 rounded-lg text-lg font-semibold transition">
+        📋 Browse List
+      </a>
+    </div>
+    <p class="mt-6 text-green-200 text-sm">
+      No account needed to browse • 100% Free for shoppers
+    </p>
+  </div>
+</section>
+
+<!-- Search Section -->
+<section class="bg-white shadow-md -mt-8 relative z-10">
+  <div class="max-w-4xl mx-auto px-4 py-6">
+    <form action="/" method="get" class="flex flex-col md:flex-row gap-3">
+      <input 
+        type="text" 
+        name="search" 
+        placeholder="Search by city, name, or product..." 
+        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+      >
+      <select name="stand_type" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+        <option value="">All Types</option>
+        <option value="farm_stand">Farm Stand</option>
+        <option value="u_pick">U-Pick</option>
+        <option value="farmers_market">Farmers Market</option>
+        <option value="roadside_stand">Roadside Stand</option>
+      </select>
+      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium">
+        Search
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- Featured Categories -->
+<section class="py-16 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h2 class="text-3xl font-bold text-center text-gray-800 mb-10">What Are You Looking For?</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <a href="/?stand_type=farm_stand" class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition text-center group">
+        <div class="text-4xl mb-3">🌽</div>
+        <h3 class="font-semibold text-gray-800 group-hover:text-green-600">Farm Stands</h3>
+      </a>
+      <a href="/?stand_type=u_pick" class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition text-center group">
+        <div class="text-4xl mb-3">🍓</div>
+        <h3 class="font-semibold text-gray-800 group-hover:text-green-600">U-Pick</h3>
+      </a>
+      <a href="/?stand_type=farmers_market" class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition text-center group">
+        <div class="text-4xl mb-3">🥕</div>
+        <h3 class="font-semibold text-gray-800 group-hover:text-green-600">Markets</h3>
+      </a>
+      <a href="/?search=eggs" class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition text-center group">
+        <div class="text-4xl mb-3">🥚</div>
+        <h3 class="font-semibold text-gray-800 group-hover:text-green-600">Eggs & More</h3>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Stands -->
+<% if @stands.any? %>
+<section class="py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center mb-8">
+      <h2 class="text-3xl font-bold text-gray-800">Nearby Farm Stands</h2>
+      <a href="/map" class="text-green-600 hover:text-green-700 font-medium">View all on map →</a>
+    </div>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% @stands.first(6).each do |stand| %>
+        <a href="<%= stand_path(stand) %>" class="bg-white rounded-xl shadow-sm hover:shadow-md transition overflow-hidden">
+          <div class="h-40 bg-green-100 flex items-center justify-center">
+            <% if stand.stand_type == 'u_pick' %>
+              <span class="text-6xl">🍓</span>
+            <% elsif stand.stand_type == 'farmers_market' %>
+              <span class="text-6xl">🥕</span>
+            <% else %>
+              <span class="text-6xl">🌽</span>
+            <% end %>
+          </div>
+          <div class="p-4">
+            <div class="flex items-start justify-between mb-2">
+              <h3 class="font-semibold text-gray-800"><%= stand.name %></h3>
+              <% if stand.verified? %>
+                <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">✓ Verified</span>
+              <% end %>
+            </div>
+            <p class="text-gray-600 text-sm mb-2">📍 <%= stand.city %>, <%= stand.state %></p>
+            <% if stand.products_text.present? %>
+              <p class="text-gray-500 text-sm line-clamp-2"><%= stand.products_text %></p>
+            <% end %>
+          </div>
+        </a>
+      <% end %>
+    </div>
+  </div>
+</section>
+<% end %>
+
+<!-- Farmer CTA -->
+<section class="py-16 bg-green-700 text-white">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <h2 class="text-3xl font-bold mb-4">Are You a Farmer?</h2>
+    <p class="text-xl text-green-100 mb-8">
+      Your stand may already be on the map! Claim it to update hours, products, and connect with customers.
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="/signup?role=farmer" class="bg-white text-green-700 hover:bg-gray-100 px-8 py-4 rounded-lg text-lg font-semibold">
+        Claim Your Stand
+      </a>
+      <a href="/farmer/stands/new" class="bg-green-600 hover:bg-green-500 border-2 border-green-400 px-8 py-4 rounded-lg text-lg font-semibold">
+        Add New Stand
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="py-12 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      <div>
+        <div class="text-4xl font-bold text-green-600"><%= Stand.count %></div>
+        <div class="text-gray-600">Local Stands</div>
+      </div>
+      <div>
+        <div class="text-4xl font-bold text-green-600"><%= Stand.where(city: 'Madison').count + Stand.where(city: 'Milwaukee').count + Stand.where(city: 'Green Bay').count %></div>
+        <div class="text-gray-600">Major Cities</div>
+      </div>
+      <div>
+        <div class="text-4xl font-bold text-green-600">WI</div>
+        <div class="text-gray-600">Wisconsin First</div>
+      </div>
+      <div>
+        <div class="text-4xl font-bold text-green-600">100%</div>
+        <div class="text-gray-600">Free to Browse</div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: mystandmap
+    env: ruby
+    buildCommand: bundle install && bundle exec rails db:migrate && bundle exec rails assets:precompile
+    startCommand: bundle exec puma -C config/puma.rb
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: DATABASE_URL
+        value: postgresql://amcurtis:0s7FxcgYyL9FuyXi2Be2qU8bW1DzNLHZ@dpg-d6pdlld6ubrc73dqqd60-a/dbmystandmap
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: APP_HOST
+        value: mystandmap.onrender.com
+    plan: free
