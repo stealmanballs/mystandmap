@@ -19,7 +19,7 @@ gem "tailwindcss-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 # Authentication
-gem "devise", "~> 4.9"
+gem "devise", "~> 5.0"
 # Geocoding for addresses
 gem "geocoder"
 # Image processing for uploads
